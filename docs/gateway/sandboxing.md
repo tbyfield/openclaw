@@ -68,10 +68,11 @@ Not sandboxed:
 `agents.defaults.sandbox.backend` controls **which runtime** provides the sandbox:
 
 - `"docker"` (default when sandboxing is enabled): local Docker-backed sandbox runtime.
+- `"lithium"`: Lithium-backed Linux sandbox runtime driven by the `w365a` or `wxc-exec` CLI. See [Lithium](/gateway/lithium).
 - `"ssh"`: generic SSH-backed remote sandbox runtime.
 - `"openshell"`: OpenShell-backed sandbox runtime.
 
-SSH-specific config lives under `agents.defaults.sandbox.ssh`. OpenShell-specific config lives under `plugins.entries.openshell.config`.
+SSH-specific config lives under `agents.defaults.sandbox.ssh`. OpenShell-specific config lives under `plugins.entries.openshell.config`. Lithium-specific config lives under `plugins.entries.lithium.config`.
 
 ### Choosing a backend
 
