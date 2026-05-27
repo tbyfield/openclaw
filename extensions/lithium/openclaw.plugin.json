@@ -1,111 +1,84 @@
 {
   "id": "lithium",
-  "activation": {
-    "onStartup": true
-  },
   "name": "Lithium Sandbox",
-  "description": "Sandbox backend that executes agent commands inside a Lithium-managed Linux sandbox via the `w365a` CLI (default) or an alternative `wxc` CLI that wraps Lithium.",
+  "description": "Run shell commands and code in a managed Lithium Linux sandbox via wxc-exec. Acquires AAD tokens in-process via `az`.",
+  "activation": { "onStartup": true },
+  "skills": ["skills/lithium-sandbox"],
+  "contracts": {
+    "tools": ["lithium_exec"]
+  },
   "configSchema": {
     "type": "object",
     "additionalProperties": false,
+    "required": ["cliPath", "tenantId", "partnerId", "imageId", "shapeName"],
     "properties": {
-      "cli": {
+      "cliPath": {
         "type": "string",
-        "enum": ["lithium", "wxc"]
+        "minLength": 1,
+        "description": "Absolute path to the wxc-exec binary."
       },
-      "binaryPath": {
+      "tenantId": {
         "type": "string",
-        "minLength": 1
+        "minLength": 1,
+        "description": "Entra/AAD tenant id used for `az account get-access-token --tenant <id>`."
       },
-      "image": {
+      "partnerId": {
         "type": "string",
-        "minLength": 1
+        "minLength": 1,
+        "description": "Lithium partner identifier."
       },
-      "pool": {
+      "imageId": {
         "type": "string",
-        "minLength": 1
+        "minLength": 1,
+        "description": "Lithium image id (e.g. `azlinuxnginxcmd`)."
       },
-      "shape": {
+      "shapeName": {
         "type": "string",
-        "minLength": 1
+        "minLength": 1,
+        "description": "Lithium shape name (e.g. `4c8g`)."
+      },
+      "poolId": {
+        "type": "string",
+        "minLength": 1,
+        "default": "default",
+        "description": "Lithium pool id."
+      },
+      "environment": {
+        "type": "string",
+        "enum": ["test", "int"],
+        "default": "test",
+        "description": "Lithium service environment. Selects API endpoint and AAD scopes from a hardcoded table."
+      },
+      "azPath": {
+        "type": "string",
+        "minLength": 1,
+        "default": "az",
+        "description": "Path to the `az` CLI. Defaults to `az` on PATH."
+      },
+      "defaultTimeoutMs": {
+        "type": "integer",
+        "minimum": 1,
+        "default": 300000,
+        "description": "Per-call timeout in milliseconds, used when the tool's `timeout` arg is omitted."
+      },
+      "maxIdleSeconds": {
+        "type": "integer",
+        "minimum": 1,
+        "default": 3600,
+        "description": "Lithium sandbox idle timeout (seconds)."
+      },
+      "maxLifetimeSeconds": {
+        "type": "integer",
+        "minimum": 1,
+        "default": 86400,
+        "description": "Lithium sandbox max lifetime (seconds)."
+      },
+      "destroyOnExit": {
+        "type": "boolean",
+        "default": true,
+        "description": "Destroy the Lithium sandbox after each invocation."
       },
       "ports": {
-        "type": "array",
-        "items": {
-          "type": "string",
-          "minLength": 1
-        }
-      },
-      "extraCreateArgs": {
-        "type": "array",
-        "items": {
-          "type": "string",
-          "minLength": 1
-        }
-      },
-      "workdir": {
-        "type": "string",
-        "minLength": 1
-      },
-      "wxcCapabilities": {
-        "type": "array",
-        "items": {
-          "type": "string",
-          "minLength": 1
-        }
-      },
-      "wxcContainment": {
-        "type": "string",
-        "enum": ["appcontainer", "wslc", "lxc", "lithium"]
-      },
-      "wslcImage": {
-        "type": "string",
-        "minLength": 1
-      },
-      "lxcDistribution": {
-        "type": "string",
-        "minLength": 1
-      },
-      "lxcRelease": {
-        "type": "string",
-        "minLength": 1
-      },
-      "lxcDestroyOnExit": {
-        "type": "boolean"
-      },
-      "lithiumPartnerId": {
-        "type": "string",
-        "minLength": 1
-      },
-      "lithiumPoolId": {
-        "type": "string",
-        "minLength": 1
-      },
-      "lithiumImageId": {
-        "type": "string",
-        "minLength": 1
-      },
-      "lithiumShapeName": {
-        "type": "string",
-        "minLength": 1
-      },
-      "lithiumMaxIdleSeconds": {
-        "type": "integer",
-        "minimum": 1
-      },
-      "lithiumMaxLifetimeSeconds": {
-        "type": "integer",
-        "minimum": 1
-      },
-      "lithiumManagementTokenEnvVar": {
-        "type": "string",
-        "minLength": 1
-      },
-      "lithiumProxyTokenEnvVar": {
-        "type": "string",
-        "minLength": 1
-      },
-      "lithiumPorts": {
         "type": "array",
         "items": {
           "type": "object",
@@ -117,163 +90,7 @@
             "protocol": { "type": "string", "enum": ["Http", "Https"] }
           }
         }
-      },
-      "lithiumDestroyOnExit": {
-        "type": "boolean"
-      },
-      "lithiumLauncherScript": {
-        "type": "string",
-        "minLength": 1
-      },
-      "lithiumTenantId": {
-        "type": "string",
-        "minLength": 1
-      },
-      "lithiumPowerShellPath": {
-        "type": "string",
-        "minLength": 1
-      },
-      "lithiumEnvironment": {
-        "type": "string",
-        "enum": ["test", "int"]
-      },
-      "timeoutSeconds": {
-        "type": "number",
-        "minimum": 1
       }
-    }
-  },
-  "uiHints": {
-    "cli": {
-      "label": "CLI",
-      "help": "Which CLI to drive. `lithium` invokes the `w365a` binary directly; `wxc` uses the `wxc-exec` binary which hides sandbox lifecycle behind base64-encoded JSON exec."
-    },
-    "binaryPath": {
-      "label": "Binary Path",
-      "help": "Optional override for the CLI binary. Defaults to `w365a` when cli=lithium, or `wxc-exec` when cli=wxc.",
-      "advanced": true
-    },
-    "image": {
-      "label": "Image",
-      "help": "Lithium image id passed on sandbox create."
-    },
-    "pool": {
-      "label": "Pool",
-      "help": "Lithium pool name passed on sandbox create."
-    },
-    "shape": {
-      "label": "Shape",
-      "help": "Lithium shape passed on sandbox create."
-    },
-    "ports": {
-      "label": "Ports",
-      "help": "Port bindings, each formatted like `<local>:Owner:<http|https>` (e.g. `8080:Owner:http`).",
-      "advanced": true
-    },
-    "extraCreateArgs": {
-      "label": "Extra Create Args",
-      "help": "Extra flags appended to the CLI create command.",
-      "advanced": true
-    },
-    "workdir": {
-      "label": "Working Directory",
-      "help": "Default working directory for commands run inside the sandbox. Defaults to /workspace."
-    },
-    "wxcCapabilities": {
-      "label": "wxc appContainer Capabilities",
-      "help": "Capabilities forwarded under appContainer.capabilities for the AppContainer backend. Only applies when cli=wxc. Defaults to [\"permissiveLearningMode\"].",
-      "advanced": true
-    },
-    "wxcContainment": {
-      "label": "wxc Containment Backend",
-      "help": "Which wxc-exec backend to use. `appcontainer` runs a Windows AppContainer; `wslc` runs a Linux container in WSL2 on the local Windows host; `lxc` runs an LXC container on a Linux host; `lithium` provisions a managed Lithium sandbox via the Lithium service. Only applies when cli=wxc. Defaults to appcontainer."
-    },
-    "wslcImage": {
-      "label": "wslc Image",
-      "help": "Container image used by the WSL container backend. Docker-style reference (e.g. `alpine:latest`, `ubuntu:24.04`). Only applies when wxcContainment=wslc."
-    },
-    "lxcDistribution": {
-      "label": "lxc Distribution",
-      "help": "LXC distribution name passed to lxc-exec (e.g. `alpine`, `ubuntu`). Only applies when wxcContainment=lxc.",
-      "advanced": true
-    },
-    "lxcRelease": {
-      "label": "lxc Release",
-      "help": "LXC distribution release passed to lxc-exec (e.g. `3.20`, `24.04`). Only applies when wxcContainment=lxc.",
-      "advanced": true
-    },
-    "lxcDestroyOnExit": {
-      "label": "lxc Destroy On Exit",
-      "help": "If true, the LXC container is destroyed after each command. Only applies when wxcContainment=lxc.",
-      "advanced": true
-    },
-    "lithiumPartnerId": {
-      "label": "Lithium Partner Id",
-      "help": "Lithium partner identifier issued for your account. Required when wxcContainment=lithium."
-    },
-    "lithiumPoolId": {
-      "label": "Lithium Pool Id",
-      "help": "Lithium pool to provision sandboxes from. Defaults to `default`. Only applies when wxcContainment=lithium."
-    },
-    "lithiumImageId": {
-      "label": "Lithium Image Id",
-      "help": "Lithium image to provision (e.g. `azlinuxnginxcmd`). Required when wxcContainment=lithium."
-    },
-    "lithiumShapeName": {
-      "label": "Lithium Shape",
-      "help": "Lithium shape (sizing) such as `4c8g`. Required when wxcContainment=lithium."
-    },
-    "lithiumMaxIdleSeconds": {
-      "label": "Lithium Max Idle (s)",
-      "help": "Idle timeout before Lithium reclaims the sandbox. Defaults to 3600. Only applies when wxcContainment=lithium.",
-      "advanced": true
-    },
-    "lithiumMaxLifetimeSeconds": {
-      "label": "Lithium Max Lifetime (s)",
-      "help": "Hard lifetime cap for a Lithium sandbox. Defaults to 86400. Only applies when wxcContainment=lithium.",
-      "advanced": true
-    },
-    "lithiumManagementTokenEnvVar": {
-      "label": "Management Token Env Var",
-      "help": "Name of the environment variable carrying the Lithium management token. wxc-exec reads the token value from this env var at runtime. Defaults to `MXC_LITHIUM_MANAGEMENT_TOKEN`. Only applies when wxcContainment=lithium.",
-      "advanced": true
-    },
-    "lithiumProxyTokenEnvVar": {
-      "label": "Proxy Token Env Var",
-      "help": "Name of the environment variable carrying the Lithium proxy token. Defaults to `MXC_LITHIUM_PROXY_TOKEN`. Only applies when wxcContainment=lithium.",
-      "advanced": true
-    },
-    "lithiumPorts": {
-      "label": "Lithium Ports",
-      "help": "Port bindings exposed by the Lithium sandbox, each `{ port, policy: \"Owner\", protocol: \"Http\"|\"Https\" }`. Only applies when wxcContainment=lithium.",
-      "advanced": true
-    },
-    "lithiumDestroyOnExit": {
-      "label": "Lithium Destroy On Exit",
-      "help": "If true, the Lithium sandbox is destroyed after the wxc-exec invocation completes. Defaults to true. Only applies when wxcContainment=lithium.",
-      "advanced": true
-    },
-    "lithiumLauncherScript": {
-      "label": "Lithium Launcher Script",
-      "help": "Path to run_lithium_fleet.ps1 (the PowerShell wrapper that handles Entra/AAD auth and invokes wxc-exec). Required when wxcContainment=lithium."
-    },
-    "lithiumTenantId": {
-      "label": "Lithium Tenant Id",
-      "help": "Entra/AAD tenant id for `az account get-access-token --tenant`. Required when wxcContainment=lithium."
-    },
-    "lithiumPowerShellPath": {
-      "label": "PowerShell Binary",
-      "help": "PowerShell executable used to run the launcher script. Defaults to `powershell.exe` (Windows PowerShell, also reachable from WSL via /init). Set to `pwsh` if you prefer PowerShell 7+. Only applies when wxcContainment=lithium.",
-      "advanced": true
-    },
-    "lithiumEnvironment": {
-      "label": "Lithium Environment",
-      "help": "Lithium service environment passed to the launcher (`test` or `int`). The launcher overrides experimental.lithium.apiEndpoint based on this. Defaults to test. Only applies when wxcContainment=lithium."
-    },
-    "timeoutSeconds": {
-      "label": "Command Timeout Seconds",
-      "help": "Timeout for CLI control operations (create, inspect, destroy).",
-      "advanced": true
     }
   }
 }

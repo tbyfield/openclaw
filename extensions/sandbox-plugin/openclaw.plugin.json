@@ -1,0 +1,52 @@
+{
+  "id": "sandbox-plugin",
+  "name": "Sandbox CLI Plugin",
+  "description": "Run workloads in isolated sandboxes via external CLI",
+  "contracts": {
+    "tools": ["execute_in_sandbox", "list_sandboxes", "cleanup_sandbox"]
+  },
+  "toolMetadata": {
+    "cleanup_sandbox": { "optional": true }
+  },
+  "activation": { "onStartup": true },
+  "configSchema": {
+    "type": "object",
+    "properties": {
+      "cliPath": {
+        "type": "string",
+        "description": "Absolute path to the sandbox CLI binary"
+      },
+      "defaultImage": {
+        "type": "string",
+        "default": "python:3.12-slim",
+        "description": "Default runtime environment image"
+      },
+      "defaultTimeout": {
+        "type": "number",
+        "default": 300000,
+        "description": "Default timeout in milliseconds"
+      },
+      "tenantId": {
+        "type": "string",
+        "default": "default",
+        "description": "Tenant ID for sandbox isolation"
+      },
+      "tenantIdPrefix": {
+        "type": "string",
+        "description": "Expected prefix for sandbox IDs in list responses (defense-in-depth)"
+      },
+      "maxWorkloadBytes": {
+        "type": "number",
+        "default": 1048576,
+        "description": "Maximum workload string size in bytes (default 1MB)"
+      },
+      "defaultTtl": {
+        "type": "number",
+        "default": 3600,
+        "description": "Default sandbox TTL in seconds for auto-expiry"
+      }
+    },
+    "required": ["cliPath"],
+    "additionalProperties": false
+  }
+}

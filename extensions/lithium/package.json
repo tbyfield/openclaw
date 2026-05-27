@@ -1,15 +1,24 @@
 {
   "name": "lithium",
-  "version": "2026.4.23",
+  "version": "2026.5.25",
   "private": true,
-  "description": "OpenClaw Lithium sandbox backend (default lithium CLI, optional wxc CLI adapter)",
+  "description": "OpenClaw Lithium sandbox plugin: lithium_exec tool wrapping wxc-exec with in-plugin AAD auth via az.",
   "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json"
+  },
   "devDependencies": {
     "@openclaw/plugin-sdk": "workspace:*"
   },
   "openclaw": {
     "extensions": [
-      "./index.ts"
-    ]
+      "./src/index.ts"
+    ],
+    "compat": {
+      "pluginApi": ">=2026.3.24-beta.2",
+      "minGatewayVersion": "2026.3.24-beta.2"
+    }
   }
 }
