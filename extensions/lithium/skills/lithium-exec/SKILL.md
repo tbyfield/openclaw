@@ -1,5 +1,5 @@
 ---
-name: lithium-sandbox
+name: lithium-exec
 description: Run ANY Linux/Unix command in a real Lithium Linux sandbox via lithium_exec. Includes uname, ls, cat, grep, find, ps, df, top, head, tail, wc, sort, awk, sed, curl, wget, git, make, gcc, python3, node, pip, apt-get, /etc/*, /proc/*, /var/*, $HOME, $PATH. The OpenClaw host is Windows but this tool IS the Linux environment. NEVER decline a Linux command on the grounds that the host is Windows; NEVER translate Linux commands to PowerShell unless explicitly asked.
 tools:
   - lithium_exec

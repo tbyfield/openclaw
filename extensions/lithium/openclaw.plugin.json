@@ -3,7 +3,7 @@
   "name": "Lithium Sandbox",
   "description": "Run shell commands and code in a managed Lithium Linux sandbox via wxc-exec. Acquires AAD tokens in-process via `az`.",
   "activation": { "onStartup": true },
-  "skills": ["skills/lithium-sandbox"],
+  "skills": ["skills/lithium-exec"],
   "contracts": {
     "tools": ["lithium_exec"]
   },
