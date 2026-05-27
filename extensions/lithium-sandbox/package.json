@@ -1,0 +1,24 @@
+{
+  "name": "lithium-sandbox",
+  "version": "2026.5.27",
+  "private": true,
+  "description": "OpenClaw native sandbox backend that routes `exec` calls through wxc-exec into a managed Lithium Linux sandbox. Registers as `agents.defaults.sandbox.backend: \"lithium\"`.",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json"
+  },
+  "devDependencies": {
+    "@openclaw/plugin-sdk": "workspace:*"
+  },
+  "openclaw": {
+    "extensions": [
+      "./src/index.ts"
+    ],
+    "compat": {
+      "pluginApi": ">=2026.3.24-beta.2",
+      "minGatewayVersion": "2026.3.24-beta.2"
+    }
+  }
+}

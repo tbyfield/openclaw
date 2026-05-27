@@ -1,0 +1,97 @@
+{
+  "id": "lithium-sandbox",
+  "name": "Lithium Sandbox Backend",
+  "description": "Native OpenClaw sandbox backend that routes `exec` calls through wxc-exec into a managed Lithium Linux sandbox. Registers as `agents.defaults.sandbox.backend: \"lithium\"`. Auth via in-process `az account get-access-token`.",
+  "activation": { "onStartup": true },
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": ["cliPath", "tenantId", "partnerId", "imageId", "shapeName"],
+    "properties": {
+      "cliPath": {
+        "type": "string",
+        "minLength": 1,
+        "description": "Absolute path to the wxc-exec binary."
+      },
+      "tenantId": {
+        "type": "string",
+        "minLength": 1,
+        "description": "Entra/AAD tenant id used for `az account get-access-token --tenant <id>`."
+      },
+      "partnerId": {
+        "type": "string",
+        "minLength": 1,
+        "description": "Lithium partner identifier."
+      },
+      "imageId": {
+        "type": "string",
+        "minLength": 1,
+        "description": "Lithium image id (e.g. `azlinuxnginxcmd`)."
+      },
+      "shapeName": {
+        "type": "string",
+        "minLength": 1,
+        "description": "Lithium shape name (e.g. `4c8g`)."
+      },
+      "poolId": {
+        "type": "string",
+        "minLength": 1,
+        "default": "default",
+        "description": "Lithium pool id."
+      },
+      "environment": {
+        "type": "string",
+        "enum": ["test", "int"],
+        "default": "test",
+        "description": "Lithium service environment. Selects API endpoint and AAD scopes from a hardcoded table."
+      },
+      "azPath": {
+        "type": "string",
+        "minLength": 1,
+        "default": "az",
+        "description": "Path to the `az` CLI. Defaults to `az` on PATH."
+      },
+      "defaultTimeoutMs": {
+        "type": "integer",
+        "minimum": 1,
+        "default": 300000,
+        "description": "Per-call timeout in milliseconds for internal runShellCommand invocations."
+      },
+      "maxIdleSeconds": {
+        "type": "integer",
+        "minimum": 1,
+        "default": 3600,
+        "description": "Lithium sandbox idle timeout (seconds)."
+      },
+      "maxLifetimeSeconds": {
+        "type": "integer",
+        "minimum": 1,
+        "default": 86400,
+        "description": "Lithium sandbox max lifetime (seconds)."
+      },
+      "destroyOnExit": {
+        "type": "boolean",
+        "default": true,
+        "description": "Destroy the Lithium sandbox after each invocation."
+      },
+      "workdir": {
+        "type": "string",
+        "default": "/",
+        "description": "Default working directory inside the sandbox, surfaced as the backend handle's `workdir`."
+      },
+      "ports": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["port", "policy", "protocol"],
+          "properties": {
+            "port": { "type": "integer", "minimum": 1, "maximum": 65535 },
+            "policy": { "type": "string", "enum": ["Owner"] },
+            "protocol": { "type": "string", "enum": ["Http", "Https"] }
+          }
+        }
+      }
+    }
+  }
+}
