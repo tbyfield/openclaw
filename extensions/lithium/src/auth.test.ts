@@ -27,8 +27,12 @@ describe("ENVIRONMENTS", () => {
     expect(ENVIRONMENTS.test.proxyScope).toBe("api://w365a-svc-nodeproxy-test/.default");
   });
 
-  it("int env reuses the same scope for management and proxy", () => {
-    expect(ENVIRONMENTS.int.managementScope).toBe(ENVIRONMENTS.int.proxyScope);
+  it("int env scopes are distinct apps (mgmt and proxy have separate audiences)", () => {
+    expect(ENVIRONMENTS.int.managementScope).toBe(
+      "api://7702b3c7-c33c-4ca7-8cf4-1a49063b77e2/.default",
+    );
+    expect(ENVIRONMENTS.int.proxyScope).toBe("api://afc70dbb-531d-4d7f-8f76-def8215631c7/.default");
+    expect(ENVIRONMENTS.int.managementScope).not.toBe(ENVIRONMENTS.int.proxyScope);
   });
 });
 
@@ -49,16 +53,23 @@ describe("acquireTokens", () => {
     expect(spawn).toHaveBeenCalledTimes(2);
   });
 
-  it("reuses the management token for proxy in int env (single spawn call)", async () => {
-    const spawn = vi.fn(okSpawn({ [ENVIRONMENTS.int.managementScope]: "shared-token\n" }));
+  it("acquires distinct mgmt + proxy tokens in int env", async () => {
+    const spawn = vi.fn(
+      okSpawn({
+        [ENVIRONMENTS.int.managementScope]: "int-mgmt-token\n",
+        [ENVIRONMENTS.int.proxyScope]: "int-proxy-token\n",
+      }),
+    );
     const tokens = await acquireTokens({
       environment: "int",
       tenantId: "tenant-1",
       spawn: spawn as unknown as SpawnFn,
     });
-    expect(tokens.managementToken).toBe("shared-token");
-    expect(tokens.proxyToken).toBe("shared-token");
-    expect(spawn).toHaveBeenCalledTimes(1);
+    expect(tokens).toEqual({
+      managementToken: "int-mgmt-token",
+      proxyToken: "int-proxy-token",
+    });
+    expect(spawn).toHaveBeenCalledTimes(2);
   });
 
   it("includes --tenant in argv", async () => {

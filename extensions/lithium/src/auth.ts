@@ -9,8 +9,9 @@ export type EnvironmentEndpoints = {
   proxyScope: string;
 };
 
-// Hardcoded mapping — mirrors run_lithium_fleet.ps1:33-44. Update here when
-// the launcher script's $endpoints map changes upstream. Scopes include the
+// Hardcoded mapping — sourced from run_lithium_fleet.ps1:33-44 plus a
+// correction for the int proxy scope (the launcher script's value was wrong;
+// the proxy and management are distinct AAD apps in int). Scopes include the
 // `/.default` suffix so we request v2.0 tokens via `az ... --scope`; the
 // proxy endpoint rejects v1.0-shaped tokens from `--resource`.
 export const ENVIRONMENTS: Record<LithiumEnvironment, EnvironmentEndpoints> = {
@@ -22,7 +23,7 @@ export const ENVIRONMENTS: Record<LithiumEnvironment, EnvironmentEndpoints> = {
   int: {
     apiEndpoint: "https://sandboxmanagement.us.int.w365lith.azure.com",
     managementScope: "api://7702b3c7-c33c-4ca7-8cf4-1a49063b77e2/.default",
-    proxyScope: "api://7702b3c7-c33c-4ca7-8cf4-1a49063b77e2/.default",
+    proxyScope: "api://afc70dbb-531d-4d7f-8f76-def8215631c7/.default",
   },
 };
 
@@ -54,8 +55,9 @@ export async function acquireTokens(opts: AcquireTokensOptions): Promise<Lithium
     spawn,
     timeoutMs,
   });
-  // In `int` the proxy and management share an AAD audience; the launcher
-  // script reuses the same token in that case to avoid a redundant call.
+  // Defensive: if a future environment ever has the proxy and management
+  // share an AAD audience, reuse the mgmt token to avoid a redundant call.
+  // Today both test and int have distinct proxy/management apps.
   const proxyToken =
     env.proxyScope === env.managementScope
       ? managementToken

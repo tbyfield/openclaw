@@ -85,18 +85,45 @@ illustrative, not exhaustive — call `lithium_exec` for anything similar):
    isn't installed inside the sandbox, the sandbox will say so when you run
    the command, not you.
 
+4. **Keep `workload` at or under 256 characters.** The underlying wxc-exec
+   binary rejects longer command lines. This budget includes any `cwd` and
+   `env` you pass — those get prepended as `cd <cwd> && export K=V && …`
+   inside the command line. If a workload would exceed the cap, see
+   _Handling long workloads_ below.
+
 ## How to call it
 
-- `workload` (required): the command or short POSIX script.
+- `workload` (required): command or short POSIX script, **≤ 256 characters
+  including any prepended `cd`/`export` from `cwd`/`env`**.
 - `cwd` (optional): working directory inside the sandbox.
 - `env` (optional): environment variables to set for this call only.
 - `timeout` (optional, seconds): override the plugin's default.
+
+## Handling long workloads
+
+If the workload would exceed 256 characters, write the script to a file in
+the sandbox first and then execute it. Use a heredoc with `base64 -d` to
+keep the file-write call short and avoid shell-escaping pitfalls:
+
+```bash
+# 1. Build the script locally (in your head), then base64-encode it.
+# 2. In one lithium_exec call, write + chmod + run:
+echo "<BASE64>" | base64 -d > /tmp/run.sh && chmod +x /tmp/run.sh && /tmp/run.sh
+```
+
+Each `lithium_exec` is one sandbox, so the write and the run must happen in
+the same call. The base64 payload itself counts toward the 256-char budget —
+keep it modest, and split into multiple files-from-base64 lines if needed.
+
+For very large payloads, prefer fetching them inside the sandbox
+(`curl -sSL <url> | sh`) over embedding the content in the workload string.
 
 ## Statelessness
 
 Each `lithium_exec` call provisions a **fresh sandbox**. Files, installed
 packages, environment variables, and cwd are gone after the call returns.
-Always chain multi-step work into one `workload` with `&&`.
+Always chain multi-step work into one `workload` with `&&`, subject to the
+256-character cap (see _Handling long workloads_ above).
 
 When the underlying service ships session support this skill will be
 updated; until then, every call is one-shot.

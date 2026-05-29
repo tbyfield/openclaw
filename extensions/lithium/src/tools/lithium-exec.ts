@@ -96,7 +96,10 @@ export function createLithiumExecTool(deps: LithiumExecToolDeps) {
       "IS the Linux environment. DO NOT translate Linux commands to PowerShell/cmd unless the user " +
       "explicitly asks for the Windows equivalent. " +
       "Each invocation runs in a fresh sandbox: state does not persist across calls, so chain " +
-      "multi-step work into one `workload` with `&&`.",
+      "multi-step work into one `workload` with `&&`. " +
+      "The effective command line (your `workload` plus any prepended `cd`/`export` from `cwd`/`env`) " +
+      "must not exceed 256 characters; for longer scripts, write them inside the sandbox via a " +
+      "base64-decoded heredoc and execute in the same call (see the skill).",
     parameters: TOOL_PARAMETERS as unknown as never,
     async execute(_toolCallId: string, args: unknown) {
       const parsed = parseParams(args);
@@ -151,7 +154,7 @@ export function createLithiumExecTool(deps: LithiumExecToolDeps) {
                 : `${existing}:${additions.join(":")}`;
         }
         logger?.debug?.(
-          `[lithium] spawn command=${command} args=${JSON.stringify(spawnArgs)} cfg=${cfgPathLocal}`,
+          `[lithium] spawn command=${command} args=${JSON.stringify(spawnArgs)} cfg=${cfgPathLocal} workload=${JSON.stringify(commandLine)}`,
         );
         logger?.debug?.(`[lithium] spawn-env WSLENV=${childEnv.WSLENV ?? "(unset)"}`);
         const result = await spawn(command, spawnArgs, {

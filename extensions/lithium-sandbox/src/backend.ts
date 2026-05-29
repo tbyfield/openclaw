@@ -110,7 +110,7 @@ export function createLithiumBackendFactory(
         });
         const { argv, env, cfgPathLocal } = await buildInvocation(workload);
         logger?.debug?.(
-          `[lithium-sandbox] buildExecSpec runtimeId=${runtimeId} cfg=${cfgPathLocal} argv=${JSON.stringify(argv)}`,
+          `[lithium-sandbox] buildExecSpec runtimeId=${runtimeId} cfg=${cfgPathLocal} argv=${JSON.stringify(argv)} workload=${JSON.stringify(workload)}`,
         );
         return {
           argv,
@@ -143,7 +143,7 @@ export function createLithiumBackendFactory(
         // these through the same long-lived sandbox as the agent's exec calls.
         const { argv, env, cfgPathLocal } = await buildInvocation(p.script);
         logger?.debug?.(
-          `[lithium-sandbox] runShellCommand runtimeId=${runtimeId} cfg=${cfgPathLocal}`,
+          `[lithium-sandbox] runShellCommand runtimeId=${runtimeId} cfg=${cfgPathLocal} workload=${JSON.stringify(p.script)}`,
         );
         try {
           const result = await spawn(argv[0] ?? pluginConfig.cliPath, argv.slice(1), {
